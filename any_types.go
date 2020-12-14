@@ -1,10 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"text/template"
 )
 
 func GenerateAnyTypes(gen *CppGenerator, primitiveTypes []GeneratableType, allTypes []GeneratableType) {
+
+	exceptionalTypes := []GeneratableType{}
+
+	for _, t := range allTypes {
+		_, isPrimitve := t.(*PrimitiveType)
+		_, isEnum := t.(*EnumType)
+		if isPrimitve || isEnum {
+			exceptionalTypes = append(exceptionalTypes, t)
+		}
+	}
+
 	template.Must(template.New("any.cpp").Parse(`
 
 	
@@ -35,20 +47,18 @@ func GenerateAnyTypes(gen *CppGenerator, primitiveTypes []GeneratableType, allTy
 				}
 				
 
-				ReflectType *reflectType() {
-					return &reflectTypeInfo[static_cast<int>(this->typeID)];
-				}
-				AnyRef getField(int i) {
-					auto info = this->reflectType();
-					if(info->kind != ReflectTypeKind::Class) {
-						throw "not a class";
-					}
-					return AnyRef(info->fields[i].typeID, this->value.voidptr + info->fields[i].offset);
-				}
+				ReflectType *reflectType();
+				AnyRef getField(int i);
 				template <typename T>
 				static AnyRef of(T *obj)
 				{
-					ReflectTypeID typeID = T::_TYPE_ID;
+					ReflectTypeID typeID;
+					{{range .PrimitiveTypes}}if constexpr(std::is_same<T, {{.CppType}}>::value) {
+						typeID = ReflectTypeID::{{.IdentifierName}};
+					} else 
+					{{end}} {
+						typeID = T::_TYPE_ID;
+					}
 					AnyRef a;
 					a.typeID = typeID;
 					a.value.voidptr = (void*) obj;
@@ -57,12 +67,32 @@ func GenerateAnyTypes(gen *CppGenerator, primitiveTypes []GeneratableType, allTy
 			
 				union ReflectedTypes {
 					void *voidptr;
-					{{range .AllTypes}}{{.CppType}} *u_{{.IdentifierName}};
+					{{range .allTypes}}{{.CppType}} *u_{{.IdentifierName}};
 					{{end}}
 				} value;
 				private:
 		
 	};
+	
+	
+	`)).Execute(gen.Body, map[string]interface{}{
+		"PrimitiveTypes": exceptionalTypes,
+		"allTypes":       allTypes,
+	})
+}
+
+func GenerateAnyTypesImplementation(gen *CppGenerator) {
+	fmt.Fprintf(gen.Body, `
+	ReflectType *AnyRef::reflectType() {
+		return &reflectTypeInfo[static_cast<int>(this->typeID)];
+	}
+	AnyRef AnyRef::getField(int i) {
+		auto info = this->reflectType();
+		if(info->kind != ReflectTypeKind::Class) {
+			throw "not a class";
+		}
+		return AnyRef(info->fields[i].typeID, this->value.voidptr + info->fields[i].offset);
+	}
 
 	class UniqueAny: public AnyRef {
 		public:
@@ -82,9 +112,25 @@ func GenerateAnyTypes(gen *CppGenerator, primitiveTypes []GeneratableType, allTy
 				delete this->value.voidptr;
 			};
 	};
-	
-	`)).Execute(gen.Body, map[string]interface{}{
-		"PrimitiveTypes": primitiveTypes,
-		"AllTypes":       allTypes,
-	})
+
+	class AnyVectorRef {
+		public:
+			AnyRef ref;
+			AnyVectorRef(AnyRef r): ref(r) {}
+			void push_back(AnyRef &v) {
+				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
+				typeInfo->vectorOps.push_back(ref, v);
+			}
+			size_t size() {
+				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
+				return typeInfo->vectorOps.size(ref);
+			}
+
+			AnyRef at(size_t index) {
+				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
+				return typeInfo->vectorOps.at(ref, index);
+			}
+	};
+
+	`)
 }
