@@ -91,7 +91,7 @@ func GenerateAnyTypesImplementation(gen *CppGenerator) {
 		if(info->kind != ReflectTypeKind::Class) {
 			throw "not a class";
 		}
-		return AnyRef(info->fields[i].typeID, this->value.voidptr + info->fields[i].offset);
+		return AnyRef(info->fields[i].typeID, static_cast<char *>(this->value.voidptr) + info->fields[i].offset);
 	}
 
 	class UniqueAny: public AnyRef {
