@@ -25,11 +25,11 @@ func (oht *OptionalHelperTypes) GenerateOptionalManipulator(cg *CppGenerator) {
 		public:
 			static AnyRef get(AnyRef &opt) {
 				auto theOptional = reinterpret_cast<std::optional<T>*>(opt.value.voidptr);
-				return AnyRef::of<T>(&**opt);
+				return AnyRef::of<T>(&**theOptional);
 			}
 			static bool has_value(AnyRef &opt) {
 				auto theOptional = reinterpret_cast<std::optional<T>*>(opt.value.voidptr);
-				return opt->has_value();
+				return theOptional->has_value();
 			}
 			static void set(AnyRef &opt, AnyRef &val) {
 				auto theOptional = reinterpret_cast<std::optional<T>*>(opt.value.voidptr);
@@ -39,7 +39,7 @@ func (oht *OptionalHelperTypes) GenerateOptionalManipulator(cg *CppGenerator) {
 
 			static void reset(AnyRef &opt) {
 				auto theOptional = reinterpret_cast<std::optional<T>*>(opt.value.voidptr);
-				opt->reset();
+				theOptional->reset();
 			}
 	};
 		

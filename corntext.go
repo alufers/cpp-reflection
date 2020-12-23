@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
 
 	"os"
@@ -17,6 +18,11 @@ type GeneratableType interface {
 	CppType() string
 	WriteDeclarations(gen *CppGenerator)
 	WriteReflection(gen *CppGenerator)
+}
+
+type GenericType interface {
+	GeneratableType
+	GetInnerType() GeneratableType
 }
 
 type ForwardDeclarable interface {
@@ -165,7 +171,7 @@ func (c *Corntext) generateProtobufTypes() {
 		descriptor.FieldDescriptorProto_TYPE_UINT32: c.PrimitiveTypes["uint32_t"],
 		descriptor.FieldDescriptorProto_TYPE_UINT64: c.PrimitiveTypes["uint64_t"],
 		descriptor.FieldDescriptorProto_TYPE_BOOL:   c.PrimitiveTypes["bool"],
-		descriptor.FieldDescriptorProto_TYPE_BYTES:  c.vectorOf(c.PrimitiveTypes["uint8_t"]),
+		descriptor.FieldDescriptorProto_TYPE_BYTES:  c.genericOf(NewVectorType, c.PrimitiveTypes["uint8_t"]),
 		descriptor.FieldDescriptorProto_TYPE_STRING: c.PrimitiveTypes["std::string"],
 	}
 	for _, f := range c.Request.ProtoFile {
@@ -192,6 +198,7 @@ func (c *Corntext) generateProtobufTypes() {
 			for _, f := range m.Field {
 				isMessage := *f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE
 				isEnum := *f.Type == descriptor.FieldDescriptorProto_TYPE_ENUM
+
 				var fieldType GeneratableType
 				if isMessage || isEnum {
 					fqn := strings.Split(*f.TypeName, ".")
@@ -208,7 +215,9 @@ func (c *Corntext) generateProtobufTypes() {
 
 				}
 				if f.Label != nil && *f.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED {
-					fieldType = c.vectorOf(fieldType)
+					fieldType = c.genericOf(NewVectorType, fieldType)
+				} else if f.Label != nil && *f.Label != descriptor.FieldDescriptorProto_LABEL_REQUIRED {
+					fieldType = c.genericOf(NewOptionalType, fieldType)
 				}
 				fields = append(fields, ClassField{
 					Name:        *f.Name,
@@ -226,19 +235,18 @@ func (c *Corntext) generateProtobufTypes() {
 	}
 }
 
-func (c *Corntext) vectorOf(inner GeneratableType) (ret GeneratableType) {
+func (c *Corntext) genericOf(constructor func(inner GeneratableType) GenericType, inner GeneratableType) (ret GeneratableType) {
 	for _, t := range c.AllTypes {
-		if v, ok := t.(*VectorType); ok {
-			if v.InnerType == inner {
-				ret = v.InnerType
+		if v, ok := t.(GenericType); ok {
+			if reflect.TypeOf(v.GetInnerType()) == reflect.TypeOf(inner) && v.GetInnerType() == inner {
+				ret = v.GetInnerType()
 
 			}
 		}
 	}
 	if ret == nil {
-		ret = &VectorType{
-			InnerType: inner,
-		}
+		ret = constructor(inner)
+
 		c.AllTypes = append(c.AllTypes, ret)
 	}
 	return

@@ -9,6 +9,16 @@ type OptionalType struct {
 	InnerType GeneratableType
 }
 
+func NewOptionalType(inner GeneratableType) GenericType {
+	return &OptionalType{
+		InnerType: inner,
+	}
+}
+
+func (vt *OptionalType) GetInnerType() GeneratableType {
+	return vt.InnerType
+}
+
 func (vt *OptionalType) IdentifierName() string {
 	return "OptionalOf" + vt.InnerType.IdentifierName()
 }

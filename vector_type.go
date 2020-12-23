@@ -9,6 +9,16 @@ type VectorType struct {
 	InnerType GeneratableType
 }
 
+func NewVectorType(inner GeneratableType) GenericType {
+	return &VectorType{
+		InnerType: inner,
+	}
+}
+
+func (vt *VectorType) GetInnerType() GeneratableType {
+	return vt.InnerType
+}
+
 func (vt *VectorType) IdentifierName() string {
 	return "VectorOf" + vt.InnerType.IdentifierName()
 }

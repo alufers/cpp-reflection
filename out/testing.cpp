@@ -199,10 +199,13 @@ void writeJSON(std::ostream &o, AnyRef any)
 
 int main(int argc, char **argv)
 {
-    std::optional<int> dziabaDziaba = 5;
+    std::optional<uint64_t> dziabaDziaba = 5;
     auto optPtr = &dziabaDziaba;
-    int * elemptr = &**optPtr;
-    std::cerr << "elemptr = " << *elemptr << "\n";
+    uint64_t *elemptr = &**optPtr;
+    AnyRef refToOptional = AnyRef::of(&dziabaDziaba);
+    AnyOptionalRef oref(refToOptional);
+    oref.reset();
+    std::cout << dziabaDziaba.has_value() << "\n";
     // std::cout << "absolute size of reflection data " << sizeof(reflectTypeInfo) << "\n";
     // Foo foo;
     // foo.alpha = 69;

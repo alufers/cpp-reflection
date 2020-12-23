@@ -12,7 +12,8 @@ func GenerateAnyTypes(gen *CppGenerator, primitiveTypes []GeneratableType, allTy
 	for _, t := range allTypes {
 		_, isPrimitve := t.(*PrimitiveType)
 		_, isEnum := t.(*EnumType)
-		if isPrimitve || isEnum {
+		_, isGeneric := t.(GenericType)
+		if isPrimitve || isEnum || isGeneric {
 			exceptionalTypes = append(exceptionalTypes, t)
 		}
 	}
@@ -130,6 +131,31 @@ func GenerateAnyTypesImplementation(gen *CppGenerator) {
 				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
 				return typeInfo->vectorOps.at(ref, index);
 			}
+	};
+
+	class AnyOptionalRef {
+		public:
+			AnyRef ref;
+			AnyOptionalRef(AnyRef r): ref(r) {}
+			
+			AnyRef get() {
+				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
+				return typeInfo->optionalOps.get(ref);
+			}
+
+			bool has_value() {
+				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
+				return typeInfo->optionalOps.has_value(ref);
+			}
+			void set(AnyRef &o) {
+				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
+				typeInfo->optionalOps.set(ref, o);
+			}
+			void reset() {
+				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
+				typeInfo->optionalOps.reset(ref);
+			}
+			
 	};
 
 	`)
