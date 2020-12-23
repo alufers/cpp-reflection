@@ -13,11 +13,11 @@ func (vt *OptionalType) IdentifierName() string {
 	return "OptionalOf" + vt.InnerType.IdentifierName()
 }
 func (vt *OptionalType) CppType() string {
-	return fmt.Sprintf("std::vector<%v>", vt.InnerType.CppType())
+	return fmt.Sprintf("std::optional<%v>", vt.InnerType.CppType())
 }
 
 func (vt *OptionalType) WriteDeclarations(gen *CppGenerator) {
-	gen.AddLibraryInclude("vector")
+	gen.AddLibraryInclude("optional")
 }
 func (vt *OptionalType) WriteReflection(gen *CppGenerator) {
 
@@ -26,10 +26,11 @@ func (vt *OptionalType) WriteReflection(gen *CppGenerator) {
 		/* mine typeId */ ReflectTypeID::{{ .IdentifierName }},
 		/* inner type id */  ReflectTypeID::{{ .InnerType.IdentifierName }},
 		/* size */ sizeof({{ .CppType }}),
-		OptionalOperations{
-			.push_back = __OptionalManipulator<{{ .InnerType.CppType }}>::push_back,
-			.at = __OptionalManipulator<{{ .InnerType.CppType }}>::at,
-			.size = __OptionalManipulator<{{ .InnerType.CppType }}>::size,
+		/* option */ OptionalOperations{
+			.get = __OptionalManipulator<{{ .InnerType.CppType }}>::get,
+			.has_value = __OptionalManipulator<{{ .InnerType.CppType }}>::has_value,
+			.set = __OptionalManipulator<{{ .InnerType.CppType }}>::set,
+			.reset = __OptionalManipulator<{{ .InnerType.CppType }}>::reset
 		},
 		__reflectConstruct<{{ .CppType }}>,
 		__reflectDestruct<{{ .CppType }}>

@@ -76,6 +76,7 @@ func (c *Corntext) outputTypes() {
 	c.CG.AddLibraryInclude("utility")
 	c.CG.AddLibraryInclude("vector")
 	vht := &VectorHelperTypes{}
+	oht := &OptionalHelperTypes{}
 	fmt.Fprintln(c.CG.Body, `
 		template<class T>
 		void __reflectConstruct(void *mem) {
@@ -88,6 +89,7 @@ func (c *Corntext) outputTypes() {
 		
 	`)
 	vht.GenerateVectorOperationsStruct(c.CG)
+	oht.GenerateOptionalOperationsStruct(c.CG)
 	for _, t := range c.AllTypes {
 		if fwd, ok := t.(ForwardDeclarable); ok {
 			fmt.Fprintf(c.CG.Body, "%v\n", fwd.ForwardDeclaration())
@@ -120,6 +122,7 @@ func (c *Corntext) outputTypes() {
 	}
 	GenerateAnyTypes(c.CG, primitiveList, c.AllTypes)
 	vht.GenerateVectorManipulator(c.CG)
+	oht.GenerateOptionalManipulator(c.CG)
 
 	c.CG.OutputArrayVariable(c.ReflectType.CppType(), "reflectTypeInfo", len(c.AllTypes), func() {
 
@@ -255,6 +258,7 @@ func (c *Corntext) generateReflectionTypes() {
 			{Name: "Enum", Value: "1"},
 			{Name: "Class", Value: "2"},
 			{Name: "Vector", Value: "3"},
+			{Name: "Optional", Value: "4"},
 		},
 	}
 	c.ReflectField = &ClassType{
@@ -309,6 +313,7 @@ func (c *Corntext) generateReflectionTypes() {
 		void (*_Construct)(void *mem);
 		void (*_Destruct)(void *obj);
 		VectorOperations vectorOps;
+		OptionalOperations optionalOps;
 		static ReflectType ofPrimitive(ReflectTypeID id, std::string name, size_t size) {
 			ReflectType t;
 			t.kind = ReflectTypeKind::Primitive;
@@ -337,6 +342,19 @@ func (c *Corntext) generateReflectionTypes() {
 			t._Construct = _Construct;
 			t._Destruct = _Destruct;
 			t.vectorOps = vectorOps;
+			return t;
+		}
+		static ReflectType ofOptional(ReflectTypeID id, ReflectTypeID innerType, size_t size, 
+			OptionalOperations optionalOps,
+			void (*_Construct)(void *mem), void (*_Destruct)(void *obj)) {
+			ReflectType t;
+			t.kind = ReflectTypeKind::Optional;
+			t.typeID = id;
+			t.innerType = innerType;
+			t.size = size;
+			t._Construct = _Construct;
+			t._Destruct = _Destruct;
+			t.optionalOps = optionalOps;
 			return t;
 		}
 		static ReflectType ofClass(ReflectTypeID id, std::string name, std::vector<ReflectField> fields, size_t size, void (*_Construct)(void *mem), void (*_Destruct)(void *obj)) {

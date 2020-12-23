@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include "sranie.h"
+#include <optional>
 
 void indent(int n)
 {
@@ -198,6 +199,10 @@ void writeJSON(std::ostream &o, AnyRef any)
 
 int main(int argc, char **argv)
 {
+    std::optional<int> dziabaDziaba = 5;
+    auto optPtr = &dziabaDziaba;
+    int * elemptr = &**optPtr;
+    std::cerr << "elemptr = " << *elemptr << "\n";
     // std::cout << "absolute size of reflection data " << sizeof(reflectTypeInfo) << "\n";
     // Foo foo;
     // foo.alpha = 69;
@@ -226,7 +231,7 @@ int main(int argc, char **argv)
     // baz.foos.push_back(foo);
     // baz.foos.push_back(foo);
     auto bazRef = AnyRef::of(&baz);
-     auto theTypeOfBaz = AnyRef::of(bazRef.reflectType());
+    auto theTypeOfBaz = AnyRef::of(bazRef.reflectType());
     writeJSON(std::cout, theTypeOfBaz);
 
     // std::cout << "\n\n -------\n\n";
