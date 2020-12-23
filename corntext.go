@@ -12,9 +12,6 @@ import (
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 )
 
-// czesc ;) 3===ddd
-// jan pawel drugi lubil male dzieci
-
 type GeneratableType interface {
 	IdentifierName() string
 	CppType() string
@@ -214,8 +211,9 @@ func (c *Corntext) generateProtobufTypes() {
 					fieldType = c.vectorOf(fieldType)
 				}
 				fields = append(fields, ClassField{
-					Name: *f.Name,
-					Type: fieldType,
+					Name:        *f.Name,
+					Type:        fieldType,
+					ProtobufTag: uint32(*f.Number),
 				})
 			}
 			ct := &ClassType{
@@ -264,25 +262,26 @@ func (c *Corntext) generateReflectionTypes() {
 	c.ReflectField = &ClassType{
 		Name: "ReflectField",
 		Fields: []ClassField{
-			{"typeID", c.TypeIDEnum},
-			{"name", c.PrimitiveTypes["std::string"]},
-			{"offset", c.PrimitiveTypes["size_t"]},
+			{"typeID", 0, c.TypeIDEnum},
+			{"name", 0, c.PrimitiveTypes["std::string"]},
+			{"offset", 0, c.PrimitiveTypes["size_t"]},
+			{"protobufTag", 0, c.PrimitiveTypes["uint32_t"]},
 		},
 		AdditionalCode: `
 			ReflectField() {};
-			ReflectField(ReflectTypeID typeID, std::string name, size_t offset) {
+			ReflectField(ReflectTypeID typeID, std::string name, size_t offset, uint32_t protobufTag) {
 				this->typeID = typeID;
 				this->name = name;
 				this->offset = offset;
+				this->protobufTag = protobufTag;
 			}
 		`,
 	}
 	c.ReflectEnumValue = &ClassType{
 		Name: "ReflectEnumValue",
 		Fields: []ClassField{
-
-			{"name", c.PrimitiveTypes["std::string"]},
-			{"value", c.PrimitiveTypes["int"]},
+			{"name", 0, c.PrimitiveTypes["std::string"]},
+			{"value", 0, c.PrimitiveTypes["int"]},
 		},
 		AdditionalCode: `
 			ReflectEnumValue(){};
@@ -301,13 +300,13 @@ func (c *Corntext) generateReflectionTypes() {
 	c.ReflectType = &ClassType{
 		Name: "ReflectType",
 		Fields: []ClassField{
-			{"typeID", c.TypeIDEnum},
-			{"name", c.PrimitiveTypes["std::string"]},
-			{"kind", c.TypeKindEnum},
-			{"size", c.PrimitiveTypes["size_t"]},
-			{"innerType", c.TypeIDEnum},
-			{"fields", c.vectorOfReflectFields},
-			{"enumValues", c.vectorOfReflectEnumValues},
+			{"typeID", 0, c.TypeIDEnum},
+			{"name", 0, c.PrimitiveTypes["std::string"]},
+			{"kind", 0, c.TypeKindEnum},
+			{"size", 0, c.PrimitiveTypes["size_t"]},
+			{"innerType", 0, c.TypeIDEnum},
+			{"fields", 0, c.vectorOfReflectFields},
+			{"enumValues", 0, c.vectorOfReflectEnumValues},
 		},
 		AdditionalCode: `
 		void (*_Construct)(void *mem);

@@ -3,8 +3,9 @@ package main
 import "fmt"
 
 type ClassField struct {
-	Name string
-	Type GeneratableType
+	Name        string
+	ProtobufTag uint32
+	Type        GeneratableType
 }
 
 type ClassType struct {
@@ -42,8 +43,8 @@ func (ct *ClassType) WriteReflection(gen *CppGenerator) {
 	gen.AddLibraryInclude("vector")
 	fieldsContents := ""
 	for _, f := range ct.Fields {
-		fieldsContents += fmt.Sprintf("ReflectField( /* typeID */ ReflectTypeID::%v, /* name */ %v, /* offset */ offsetof(%v, %v)),\n",
-			f.Type.IdentifierName(), gen.EscapeCppString(f.Name), ct.CppType(), f.Name)
+		fieldsContents += fmt.Sprintf("ReflectField( /* typeID */ ReflectTypeID::%v, /* name */ %v, /* offset */ offsetof(%v, %v), /* protobuf tag */ %v),\n",
+			f.Type.IdentifierName(), gen.EscapeCppString(f.Name), ct.CppType(), f.Name, f.ProtobufTag)
 	}
 	fmt.Fprintf(gen.Body, `ReflectType::ofClass(
 	/* mine type id */ ReflectTypeID::%v, 
