@@ -211,14 +211,17 @@ func (c *Corntext) generateProtobufTypes() {
 						log.Fatal("unsupported proto type", (*f.Type).String())
 					}
 					fieldType = primitiveType
+
 					// log.Printf("%#v == %v", primitiveType, *f.Type)
 
 				}
 				if f.Label != nil && *f.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 					fieldType = c.genericOf(NewVectorType, fieldType)
 				} else if f.Label != nil && *f.Label != descriptor.FieldDescriptorProto_LABEL_REQUIRED {
+
 					fieldType = c.genericOf(NewOptionalType, fieldType)
 				}
+
 				fields = append(fields, ClassField{
 					Name:        *f.Name,
 					Type:        fieldType,
@@ -238,8 +241,9 @@ func (c *Corntext) generateProtobufTypes() {
 func (c *Corntext) genericOf(constructor func(inner GeneratableType) GenericType, inner GeneratableType) (ret GeneratableType) {
 	for _, t := range c.AllTypes {
 		if v, ok := t.(GenericType); ok {
-			if reflect.TypeOf(v.GetInnerType()) == reflect.TypeOf(inner) && v.GetInnerType() == inner {
-				ret = v.GetInnerType()
+
+			if reflect.TypeOf(v.GetInnerType()).String() == reflect.TypeOf(inner).String() && v.GetInnerType() == inner {
+				ret = v
 
 			}
 		}
