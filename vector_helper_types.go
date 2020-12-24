@@ -36,6 +36,5 @@ func (vht *VectorHelperTypes) GenerateVectorManipulator(cg *CppGenerator) {
 				return theVector->size();
 			};
 	};
-		
 	`)
 }
