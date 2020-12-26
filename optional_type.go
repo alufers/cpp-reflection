@@ -40,7 +40,8 @@ func (vt *OptionalType) WriteReflection(gen *CppGenerator) {
 			.get = __OptionalManipulator<{{ .InnerType.CppType }}>::get,
 			.has_value = __OptionalManipulator<{{ .InnerType.CppType }}>::has_value,
 			.set = __OptionalManipulator<{{ .InnerType.CppType }}>::set,
-			.reset = __OptionalManipulator<{{ .InnerType.CppType }}>::reset
+			.reset = __OptionalManipulator<{{ .InnerType.CppType }}>::reset,
+			.emplaceEmpty =  __OptionalManipulator<{{ .InnerType.CppType }}>::emplaceEmpty,
 		},
 		__reflectConstruct<{{ .CppType }}>,
 		__reflectDestruct<{{ .CppType }}>

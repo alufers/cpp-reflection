@@ -13,6 +13,7 @@ func (oht *OptionalHelperTypes) GenerateOptionalOperationsStruct(cg *CppGenerato
 			bool (*has_value)(AnyRef &opt);
 			void (*set)(AnyRef &opt, AnyRef &val);
 			void (*reset)(AnyRef &opt);
+			void (*emplaceEmpty)(AnyRef &opt);
 		};
 		
 	`)
@@ -40,6 +41,11 @@ func (oht *OptionalHelperTypes) GenerateOptionalManipulator(cg *CppGenerator) {
 			static void reset(AnyRef &opt) {
 				auto theOptional = reinterpret_cast<std::optional<T>*>(opt.value.voidptr);
 				theOptional->reset();
+			}
+
+			static void emplaceEmpty(AnyRef &opt) {
+				auto theOptional = reinterpret_cast<std::optional<T>*>(opt.value.voidptr);
+				theOptional->emplace();
 			}
 	};
 		
