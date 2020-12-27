@@ -155,6 +155,12 @@ func GenerateAnyTypesImplementation(gen *CppGenerator) {
 				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
 				typeInfo->optionalOps.reset(ref);
 			}
+
+			void emplaceEmpty() {
+				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
+				typeInfo->optionalOps.emplaceEmpty(ref);
+			}
+
 	};
 
 	`)
