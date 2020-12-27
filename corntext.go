@@ -218,7 +218,6 @@ func (c *Corntext) generateProtobufTypes() {
 				if f.Label != nil && *f.Label == descriptor.FieldDescriptorProto_LABEL_REPEATED {
 					fieldType = c.genericOf(NewVectorType, fieldType)
 				} else if f.Label != nil && *f.Label != descriptor.FieldDescriptorProto_LABEL_REQUIRED {
-
 					fieldType = c.genericOf(NewOptionalType, fieldType)
 				}
 
@@ -239,10 +238,11 @@ func (c *Corntext) generateProtobufTypes() {
 }
 
 func (c *Corntext) genericOf(constructor func(inner GeneratableType) GenericType, inner GeneratableType) (ret GeneratableType) {
+	sample := constructor(nil)
 	for _, t := range c.AllTypes {
 		if v, ok := t.(GenericType); ok {
 
-			if reflect.TypeOf(v.GetInnerType()).String() == reflect.TypeOf(inner).String() && v.GetInnerType() == inner {
+			if reflect.TypeOf(sample).String() == reflect.TypeOf(v).String() && v.GetInnerType() == inner {
 				ret = v
 
 			}
