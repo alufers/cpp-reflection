@@ -13,6 +13,7 @@ func (vht *VectorHelperTypes) GenerateVectorOperationsStruct(cg *CppGenerator) {
 			AnyRef (*at)(AnyRef &vec, size_t index);
 			size_t (*size)(AnyRef &vec);
 			void (*emplace_back)(AnyRef &vec);
+			void (*clear)(AnyRef &vec);
 			void (*reserve)(AnyRef &vec, size_t n);
 		};
 		
@@ -40,6 +41,10 @@ func (vht *VectorHelperTypes) GenerateVectorManipulator(cg *CppGenerator) {
 			static void emplace_back(AnyRef &vec) {
 				auto theVector = reinterpret_cast<std::vector<T>*>(vec.value.voidptr);
 				theVector->emplace_back();
+			};
+			static void clear(AnyRef &vec) {
+				auto theVector = reinterpret_cast<std::vector<T>*>(vec.value.voidptr);
+				theVector->clear();
 			};
 			static void reserve(AnyRef &vec, size_t n) {
 				auto theVector = reinterpret_cast<std::vector<T>*>(vec.value.voidptr);

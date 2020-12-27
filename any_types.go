@@ -132,6 +132,11 @@ func GenerateAnyTypesImplementation(gen *CppGenerator) {
 				typeInfo->vectorOps.emplace_back(ref);
 			}
 
+			void clear() {
+				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
+				typeInfo->vectorOps.clear(ref);
+			}
+
 			void reserve(size_t n) {
 				auto typeInfo = &reflectTypeInfo[static_cast<int>(this->ref.typeID)];
 				typeInfo->vectorOps.reserve(ref, n);

@@ -41,6 +41,7 @@ func (vt *VectorType) WriteReflection(gen *CppGenerator) {
 			.at = __VectorManipulator<{{ .InnerType.CppType }}>::at,
 			.size = __VectorManipulator<{{ .InnerType.CppType }}>::size,
 			.emplace_back =  __VectorManipulator<{{ .InnerType.CppType }}>::emplace_back,
+			.clear = __VectorManipulator<{{ .InnerType.CppType }}>::clear,
 			.reserve = __VectorManipulator<{{ .InnerType.CppType }}>::reserve,
 		},
 		__reflectConstruct<{{ .CppType }}>,
