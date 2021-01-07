@@ -6,7 +6,7 @@ type VectorHelperTypes struct {
 }
 
 func (vht *VectorHelperTypes) GenerateVectorOperationsStruct(cg *CppGenerator) {
-	fmt.Fprintln(cg.Body, `
+	fmt.Fprintln(cg.BodyBeforeLocalIncludes, `
 		class AnyRef;
 		struct VectorOperations {
 			void (*push_back)(AnyRef &vec, AnyRef &val);

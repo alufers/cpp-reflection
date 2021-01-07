@@ -25,9 +25,11 @@ func (et *EnumType) CppType() string {
 }
 
 func (et *EnumType) WriteDeclarations(gen *CppGenerator) {
-	gen.OutputEnumClass(et.Name, func() {
+	enumSubfile := gen.SubFile(et.Name+".h", true)
+	gen.AddLocalInclude(enumSubfile.Filename)
+	enumSubfile.OutputEnumClass(et.Name, func() {
 		for _, v := range et.Values {
-			gen.OutputEnumClassField(v.Name, v.Value)
+			enumSubfile.OutputEnumClassField(v.Name, v.Value)
 		}
 	})
 }

@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"strings"
 
-	"os"
 	"sort"
 
 	"github.com/golang/protobuf/protoc-gen-go/descriptor"
@@ -54,7 +53,7 @@ func NewCorntext() *Corntext {
 	return &Corntext{
 		Request:  new(plugin.CodeGeneratorRequest),
 		Response: new(plugin.CodeGeneratorResponse),
-		CG:       NewCppGenerator(),
+		CG:       NewCppGenerator("sranie.h"),
 		AllTypes: []GeneratableType{},
 		PrimitiveTypes: map[string]GeneratableType{
 			"int":           &PrimitiveType{identifierName: "Int", cppType: "int"},
@@ -126,20 +125,20 @@ func (c *Corntext) outputTypes() {
 	GenerateAnyTypes(c.CG, primitiveList, c.AllTypes)
 	vht.GenerateVectorManipulator(c.CG)
 	oht.GenerateOptionalManipulator(c.CG)
-
-	c.CG.OutputArrayVariable(c.ReflectType.CppType(), "reflectTypeInfo", len(c.AllTypes), func() {
+	
+	c.CG.OutputArrayVariableExtern(c.ReflectType.CppType(), "reflectTypeInfo", len(c.AllTypes))
+	dataFile := c.CG.SubFile("ReflectTypeInfo.cpp", false).AddLocalInclude(c.CG.Filename)
+	dataFile.OutputArrayVariable(c.ReflectType.CppType(), "reflectTypeInfo", len(c.AllTypes), func() {
 
 		for _, t := range c.AllTypes {
-			t.WriteReflection(c.CG)
-			fmt.Fprintf(c.CG.Body, ",\n")
+			t.WriteReflection(dataFile)
+			fmt.Fprintf(dataFile.Body, ",\n")
 		}
 	})
 
 	GenerateAnyTypesImplementation(c.CG)
 
-	f, _ := os.Create("out/sranie.h")
-	defer f.Close()
-	c.CG.WriteToWriter(f)
+	c.CG.OutputToDirectory("out/")
 }
 
 func (c *Corntext) buildAllTypes() {
@@ -279,6 +278,9 @@ func (c *Corntext) generateReflectionTypes() {
 			{"offset", 0, c.PrimitiveTypes["size_t"]},
 			{"protobufTag", 0, c.PrimitiveTypes["uint32_t"]},
 		},
+		AdditionalLibraryIncludes: []string{
+			"string",
+		},
 		AdditionalCode: `
 			ReflectField() {};
 			ReflectField(ReflectTypeID typeID, std::string name, size_t offset, uint32_t protobufTag) {
@@ -294,6 +296,9 @@ func (c *Corntext) generateReflectionTypes() {
 		Fields: []ClassField{
 			{"name", 0, c.PrimitiveTypes["std::string"]},
 			{"value", 0, c.PrimitiveTypes["int"]},
+		},
+		AdditionalLibraryIncludes: []string{
+			"string",
 		},
 		AdditionalCode: `
 			ReflectEnumValue(){};
@@ -319,6 +324,10 @@ func (c *Corntext) generateReflectionTypes() {
 			{"innerType", 0, c.TypeIDEnum},
 			{"fields", 0, c.vectorOfReflectFields},
 			{"enumValues", 0, c.vectorOfReflectEnumValues},
+		},
+		AdditionalLibraryIncludes: []string{
+			"string",
+			"vector",
 		},
 		AdditionalCode: `
 		void (*_Construct)(void *mem);

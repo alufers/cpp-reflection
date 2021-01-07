@@ -6,7 +6,7 @@ type OptionalHelperTypes struct {
 }
 
 func (oht *OptionalHelperTypes) GenerateOptionalOperationsStruct(cg *CppGenerator) {
-	fmt.Fprintln(cg.Body, `
+	fmt.Fprintln(cg.BodyBeforeLocalIncludes, `
 		class AnyRef;
 		struct OptionalOperations {
 			AnyRef (*get)(AnyRef &opt);

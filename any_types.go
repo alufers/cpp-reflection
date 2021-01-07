@@ -83,7 +83,7 @@ func GenerateAnyTypes(gen *CppGenerator, primitiveTypes []GeneratableType, allTy
 }
 
 func GenerateAnyTypesImplementation(gen *CppGenerator) {
-	fmt.Fprintf(gen.Body, `
+	fmt.Fprintf(gen.SubFile("AnyRefImpl.cpp", false).AddLocalInclude(gen.Filename).Body, `
 	ReflectType *AnyRef::reflectType() {
 		return &reflectTypeInfo[static_cast<int>(this->typeID)];
 	}
@@ -94,6 +94,10 @@ func GenerateAnyTypesImplementation(gen *CppGenerator) {
 		}
 		return AnyRef(info->fields[i].typeID, static_cast<char *>(this->value.voidptr) + info->fields[i].offset);
 	}
+`)
+
+	fmt.Fprintf(gen.Body, `
+	
 
 	class UniqueAny: public AnyRef {
 		public:
@@ -110,7 +114,7 @@ func GenerateAnyTypesImplementation(gen *CppGenerator) {
 			~UniqueAny() {
 				auto typeInfo = &reflectTypeInfo[static_cast<int>(typeID)];
 				typeInfo->_Destruct(this->value.voidptr);
-				delete this->value.voidptr;
+				delete reinterpret_cast<char *>(this->value.voidptr);
 			};
 	};
 

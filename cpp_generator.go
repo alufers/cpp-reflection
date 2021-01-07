@@ -5,30 +5,66 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
+	"path"
+	"strings"
+	"unicode"
 )
 
 type CppGenerator struct {
-	includes []string
-	Body     *bytes.Buffer
+	includes                []string
+	files                   map[string]*CppGenerator
+	Body                    *bytes.Buffer
+	BodyBeforeLocalIncludes *bytes.Buffer
+	Filename                string
+	IsHeader                bool
 }
 
 // NewCppGenerator docsy bo ci wywali sie blad xd
-func NewCppGenerator() *CppGenerator {
+func NewCppGenerator(filename string) *CppGenerator {
+	isHeader := true
+	if strings.HasSuffix(filename, ".cpp") {
+		isHeader = false
+	}
 	return &CppGenerator{
-		includes: []string{},
-		Body:     &bytes.Buffer{},
+		includes:                []string{},
+		Body:                    &bytes.Buffer{},
+		BodyBeforeLocalIncludes: &bytes.Buffer{},
+		files:                   make(map[string]*CppGenerator),
+		Filename:                filename,
+		IsHeader:                isHeader,
 	}
 }
 
+func (cg *CppGenerator) SubFile(filename string, isHeader bool) *CppGenerator {
+	gen := NewCppGenerator(filename)
+	gen.IsHeader = isHeader
+	gen.files = cg.files
+	cg.files[filename] = gen
+	return gen
+}
+
 // AddLibraryInclude yes
-func (cg *CppGenerator) AddLibraryInclude(name string) {
+func (cg *CppGenerator) AddLibraryInclude(name string) *CppGenerator {
 	resultingLine := fmt.Sprintf("#include <%s>", name)
 	for _, a := range cg.includes {
 		if a == resultingLine {
-			return
+			return cg
 		}
 	}
 	cg.includes = append(cg.includes, resultingLine)
+	return cg
+}
+
+func (cg *CppGenerator) AddLocalInclude(name string) *CppGenerator {
+	resultingLine := fmt.Sprintf("#include \"%s\"", name)
+	for _, a := range cg.includes {
+		if a == resultingLine {
+			return cg
+		}
+	}
+	cg.includes = append(cg.includes, resultingLine)
+	return cg
 }
 
 // OutputClassField yes
@@ -61,6 +97,10 @@ func (cg *CppGenerator) OutputArrayVariable(t string, name string, length int, c
 	fmt.Fprintf(cg.Body, "};\n\n")
 }
 
+func (cg *CppGenerator) OutputArrayVariableExtern(t string, name string, length int) {
+	fmt.Fprintf(cg.Body, "extern %v %v[%d];", t, name, length)
+}
+
 func (cg *CppGenerator) OutputEnumClassField(name string, value string) {
 	fmt.Fprintf(cg.Body, "%v", name)
 	if value != "" {
@@ -77,11 +117,46 @@ func (cg *CppGenerator) EscapeCppString(str string) string {
 
 func (cg *CppGenerator) WriteToWriter(w io.Writer) {
 	fmt.Fprintf(w, "// THIS CORNFILE IS GENERATED. DO NOT EDIT! 🌽\n")
-	fmt.Fprintf(w, "#ifndef __ALU_CODEGEN\n")
-	fmt.Fprintf(w, "#define __ALU_CODEGEN\n")
+	guardString := "_"
+	for _, c := range []rune(cg.Filename) {
+		if unicode.IsUpper(c) {
+			guardString += "_"
+		}
+		if unicode.IsLetter(c) {
+			guardString += strings.ToUpper(string([]rune{c}))
+		}
+	}
+	if cg.IsHeader {
+
+		fmt.Fprintf(w, "#ifndef %v\n", guardString)
+		fmt.Fprintf(w, "#define %v\n", guardString)
+	}
 	for _, a := range cg.includes {
-		fmt.Fprintf(w, "%v\n", a)
+		if strings.Contains(a, "<") {
+			fmt.Fprintf(w, "%v\n", a)
+		}
+	}
+	io.Copy(w, cg.BodyBeforeLocalIncludes)
+	for _, a := range cg.includes {
+		if !strings.Contains(a, "<") {
+			fmt.Fprintf(w, "%v\n", a)
+		}
 	}
 	io.Copy(w, cg.Body)
-	fmt.Fprintf(w, "#endif\n")
+	if cg.IsHeader {
+		fmt.Fprintf(w, "#endif\n")
+	}
+}
+
+func (cg *CppGenerator) OutputToDirectory(dirPath string) {
+	f, _ := os.Create(path.Join(dirPath, cg.Filename))
+	defer f.Close()
+	cg.WriteToWriter(f)
+
+	for _, fileToOutput := range cg.files {
+		f, _ := os.Create(path.Join(dirPath, fileToOutput.Filename))
+		defer f.Close()
+		fileToOutput.WriteToWriter(f)
+	}
+
 }

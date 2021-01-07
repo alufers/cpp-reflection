@@ -11,9 +11,10 @@ type ClassField struct {
 }
 
 type ClassType struct {
-	Name           string
-	Fields         []ClassField
-	AdditionalCode string
+	Name                      string
+	Fields                    []ClassField
+	AdditionalCode            string
+	AdditionalLibraryIncludes []string
 }
 
 func (ct *ClassType) IdentifierName() string {
@@ -33,12 +34,20 @@ func (ct *ClassType) ForwardDeclaration() string {
 }
 
 func (ct *ClassType) WriteDeclarations(gen *CppGenerator) {
-	gen.OutputClass(ct.Name, func() {
+	classSubfile := gen.SubFile(ct.Name+".h", true)
+	gen.AddLocalInclude(classSubfile.Filename)
+	for _, f := range ct.Fields {
+		AddIncludeForType(f.Type, classSubfile)
+	}
+	for _, i := range ct.AdditionalLibraryIncludes {
+		classSubfile.AddLibraryInclude(i)
+	}
+	classSubfile.OutputClass(ct.Name, func() {
 		for _, t := range ct.Fields {
-			gen.OutputClassField(t.Type.CppType(), t.Name)
+			classSubfile.OutputClassField(t.Type.CppType(), t.Name)
 		}
-		gen.OutputClassTypeID(ct.IdentifierName())
-		fmt.Fprint(gen.Body, ct.AdditionalCode)
+		classSubfile.OutputClassTypeID(ct.IdentifierName())
+		fmt.Fprint(classSubfile.Body, ct.AdditionalCode)
 	})
 }
 func (ct *ClassType) WriteReflection(gen *CppGenerator) {
