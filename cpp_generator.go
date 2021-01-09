@@ -37,6 +37,9 @@ func NewCppGenerator(filename string) *CppGenerator {
 }
 
 func (cg *CppGenerator) SubFile(filename string, isHeader bool) *CppGenerator {
+	if gen, ok := cg.files[filename]; ok {
+		return gen
+	}
 	gen := NewCppGenerator(filename)
 	gen.IsHeader = isHeader
 	gen.files = cg.files
@@ -138,7 +141,7 @@ func (cg *CppGenerator) WriteToWriter(w io.Writer) {
 	}
 	io.Copy(w, cg.BodyBeforeLocalIncludes)
 	for _, a := range cg.includes {
-		if !strings.Contains(a, "<") {
+		if !strings.Contains(a, "<") && a != fmt.Sprintf("#include \"%v\"", cg.Filename) {
 			fmt.Fprintf(w, "%v\n", a)
 		}
 	}

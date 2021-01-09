@@ -15,6 +15,7 @@ type ClassType struct {
 	Fields                    []ClassField
 	AdditionalCode            string
 	AdditionalLibraryIncludes []string
+	ProtoName                 string
 }
 
 func (ct *ClassType) IdentifierName() string {
@@ -34,7 +35,7 @@ func (ct *ClassType) ForwardDeclaration() string {
 }
 
 func (ct *ClassType) WriteDeclarations(gen *CppGenerator) {
-	classSubfile := gen.SubFile(ct.Name+".h", true)
+	classSubfile := gen.SubFile(ct.ProtoName+".h", true)
 	gen.AddLocalInclude(classSubfile.Filename)
 	for _, f := range ct.Fields {
 		AddIncludeForType(f.Type, classSubfile)

@@ -8,8 +8,9 @@ type EnumValue struct {
 }
 
 type EnumType struct {
-	Name   string
-	Values []EnumValue
+	Name      string
+	Values    []EnumValue
+	ProtoName string
 }
 
 func (et *EnumType) IdentifierName() string {
@@ -25,7 +26,7 @@ func (et *EnumType) CppType() string {
 }
 
 func (et *EnumType) WriteDeclarations(gen *CppGenerator) {
-	enumSubfile := gen.SubFile(et.Name+".h", true)
+	enumSubfile := gen.SubFile(et.ProtoName+".h", true)
 	gen.AddLocalInclude(enumSubfile.Filename)
 	enumSubfile.OutputEnumClass(et.Name, func() {
 		for _, v := range et.Values {

@@ -125,7 +125,7 @@ func (c *Corntext) outputTypes() {
 	GenerateAnyTypes(c.CG, primitiveList, c.AllTypes)
 	vht.GenerateVectorManipulator(c.CG)
 	oht.GenerateOptionalManipulator(c.CG)
-	
+
 	c.CG.OutputArrayVariableExtern(c.ReflectType.CppType(), "reflectTypeInfo", len(c.AllTypes))
 	dataFile := c.CG.SubFile("ReflectTypeInfo.cpp", false).AddLocalInclude(c.CG.Filename)
 	dataFile.OutputArrayVariable(c.ReflectType.CppType(), "reflectTypeInfo", len(c.AllTypes), func() {
@@ -145,9 +145,9 @@ func (c *Corntext) buildAllTypes() {
 	c.generateReflectionTypes()
 	c.AllTypes = append(c.AllTypes,
 		c.TypeIDEnum,
-		c.ReflectType,
 		c.ReflectField,
 		c.ReflectEnumValue,
+		c.ReflectType,
 		c.TypeKindEnum,
 		c.vectorOfReflectFields,
 		c.vectorOfReflectEnumValues,
@@ -184,13 +184,16 @@ func (c *Corntext) generateProtobufTypes() {
 					Value: fmt.Sprint(*v.Number),
 				})
 			}
+			log.Printf("name: %v", *f.Name)
 			et := &EnumType{
-				Name:   *e.Name,
-				Values: values,
+				Name:      *e.Name,
+				Values:    values,
+				ProtoName: StripExtenstion(*f.Name),
 			}
 			typeMappings[*e.Name] = et
 			c.AllTypes = append(c.AllTypes, et)
 		}
+
 		for _, m := range f.MessageType {
 
 			fields := []ClassField{}
@@ -227,8 +230,9 @@ func (c *Corntext) generateProtobufTypes() {
 				})
 			}
 			ct := &ClassType{
-				Name:   *m.Name,
-				Fields: fields,
+				Name:      *m.Name,
+				Fields:    fields,
+				ProtoName: StripExtenstion(*f.Name),
 			}
 			typeMappings[*m.Name] = ct
 			c.AllTypes = append(c.AllTypes, ct)
@@ -257,11 +261,13 @@ func (c *Corntext) genericOf(constructor func(inner GeneratableType) GenericType
 
 func (c *Corntext) generateReflectionTypes() {
 	c.TypeIDEnum = &EnumType{
-		Name:   "ReflectTypeID",
-		Values: []EnumValue{},
+		Name:      "ReflectTypeID",
+		ProtoName: "ReflectionInternal",
+		Values:    []EnumValue{},
 	}
 	c.TypeKindEnum = &EnumType{
-		Name: "ReflectTypeKind",
+		Name:      "ReflectTypeKind",
+		ProtoName: "ReflectionInternal",
 		Values: []EnumValue{
 			{Name: "Primitive", Value: "0"},
 			{Name: "Enum", Value: "1"},
@@ -271,7 +277,8 @@ func (c *Corntext) generateReflectionTypes() {
 		},
 	}
 	c.ReflectField = &ClassType{
-		Name: "ReflectField",
+		Name:      "ReflectField",
+		ProtoName: "ReflectionInternal",
 		Fields: []ClassField{
 			{"typeID", 0, c.TypeIDEnum},
 			{"name", 0, c.PrimitiveTypes["std::string"]},
@@ -292,7 +299,8 @@ func (c *Corntext) generateReflectionTypes() {
 		`,
 	}
 	c.ReflectEnumValue = &ClassType{
-		Name: "ReflectEnumValue",
+		Name:      "ReflectEnumValue",
+		ProtoName: "ReflectionInternal",
 		Fields: []ClassField{
 			{"name", 0, c.PrimitiveTypes["std::string"]},
 			{"value", 0, c.PrimitiveTypes["int"]},
@@ -315,7 +323,8 @@ func (c *Corntext) generateReflectionTypes() {
 		InnerType: c.ReflectEnumValue,
 	}
 	c.ReflectType = &ClassType{
-		Name: "ReflectType",
+		Name:      "ReflectType",
+		ProtoName: "ReflectionInternal",
 		Fields: []ClassField{
 			{"typeID", 0, c.TypeIDEnum},
 			{"name", 0, c.PrimitiveTypes["std::string"]},
