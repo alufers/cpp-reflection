@@ -53,7 +53,7 @@ func NewCorntext() *Corntext {
 	return &Corntext{
 		Request:  new(plugin.CodeGeneratorRequest),
 		Response: new(plugin.CodeGeneratorResponse),
-		CG:       NewCppGenerator("sranie.h"),
+		CG:       NewCppGenerator("protobuf.h"),
 		AllTypes: []GeneratableType{},
 		PrimitiveTypes: map[string]GeneratableType{
 			"int":           &PrimitiveType{identifierName: "Int", cppType: "int"},
@@ -138,7 +138,7 @@ func (c *Corntext) outputTypes() {
 
 	GenerateAnyTypesImplementation(c.CG)
 
-	c.CG.OutputToDirectory("out/")
+	c.CG.OutputToDirectory("protos/")
 }
 
 func (c *Corntext) buildAllTypes() {
