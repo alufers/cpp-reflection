@@ -196,6 +196,16 @@ func (c *Corntext) generateProtobufTypes() {
 
 		for _, m := range f.MessageType {
 
+			ct := &ClassType{
+				Name:      *m.Name,
+				ProtoName: StripExtenstion(*f.Name),
+			}
+			typeMappings[*m.Name] = ct
+			c.AllTypes = append(c.AllTypes, ct)
+		}
+
+		for _, m := range f.MessageType {
+
 			fields := []ClassField{}
 			for _, f := range m.Field {
 				isMessage := *f.Type == descriptor.FieldDescriptorProto_TYPE_MESSAGE
@@ -229,13 +239,8 @@ func (c *Corntext) generateProtobufTypes() {
 					ProtobufTag: uint32(*f.Number),
 				})
 			}
-			ct := &ClassType{
-				Name:      *m.Name,
-				Fields:    fields,
-				ProtoName: StripExtenstion(*f.Name),
-			}
-			typeMappings[*m.Name] = ct
-			c.AllTypes = append(c.AllTypes, ct)
+			ct := typeMappings[*m.Name].(*ClassType)
+			ct.Fields = fields
 		}
 	}
 }
