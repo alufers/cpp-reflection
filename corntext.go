@@ -57,7 +57,7 @@ func NewCorntext() *Corntext {
 		AllTypes: []GeneratableType{},
 		PrimitiveTypes: map[string]GeneratableType{
 			"int":           &PrimitiveType{identifierName: "Int", cppType: "int"},
-			"unsigned int":  &PrimitiveType{identifierName: "UnsignedInt", cppType: "unsigned int"},
+			// "unsigned int":  &PrimitiveType{identifierName: "UnsignedInt", cppType: "unsigned int"},
 			"char":          &PrimitiveType{identifierName: "Char", cppType: "char"},
 			"unsigned char": &PrimitiveType{identifierName: "UnsignedChar", cppType: "unsigned char"},
 			"double":        &PrimitiveType{identifierName: "Double", cppType: "double"},
