@@ -64,7 +64,7 @@ func NewCorntext() *Corntext {
 			"float":         &PrimitiveType{identifierName: "Float", cppType: "float"},
 			"bool":          &PrimitiveType{identifierName: "Bool", cppType: "bool"},
 			"std::string":   &PrimitiveType{identifierName: "String", cppType: "std::string"},
-			"size_t":        &PrimitiveType{identifierName: "SizeT", cppType: "size_t"},
+			// "size_t":        &PrimitiveType{identifierName: "SizeT", cppType: "size_t"},
 			"int32_t":       &PrimitiveType{identifierName: "Int32", cppType: "int32_t"},
 			"int64_t":       &PrimitiveType{identifierName: "Int64", cppType: "int64_t"},
 			"uint32_t":      &PrimitiveType{identifierName: "Uint32", cppType: "uint32_t"},
