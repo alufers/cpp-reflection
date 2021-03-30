@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"text/template"
 )
 
@@ -17,6 +18,7 @@ func GenerateAnyTypes(gen *CppGenerator, primitiveTypes []GeneratableType, allTy
 			exceptionalTypes = append(exceptionalTypes, t)
 		}
 		if _, ok := t.(*AliasType); !ok {
+			log.Printf("%#v", t)
 			allTypesWithoutAliases = append(allTypesWithoutAliases, t)
 		}
 	}

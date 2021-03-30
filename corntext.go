@@ -160,11 +160,13 @@ func (c *Corntext) buildAllTypes() {
 		c.AllTypes = append(c.AllTypes, t)
 	}
 	c.generateProtobufTypes()
-	for i, t := range c.AllTypes {
+	i := 0
+	for _, t := range c.AllTypes {
 		if _, ok := t.(*AliasType); ok {
 			continue
 		}
 		c.TypeIDEnum.(*EnumType).Values = append(c.TypeIDEnum.(*EnumType).Values, EnumValue{Name: t.IdentifierName(), Value: fmt.Sprintf("%v", i)})
+		i++
 	}
 }
 
