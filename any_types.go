@@ -8,13 +8,16 @@ import (
 func GenerateAnyTypes(gen *CppGenerator, primitiveTypes []GeneratableType, allTypes []GeneratableType) {
 
 	exceptionalTypes := []GeneratableType{}
-
+	allTypesWithoutAliases := []GeneratableType{}
 	for _, t := range allTypes {
 		_, isPrimitve := t.(*PrimitiveType)
 		_, isEnum := t.(*EnumType)
 		_, isGeneric := t.(GenericType)
 		if isPrimitve || isEnum || isGeneric {
 			exceptionalTypes = append(exceptionalTypes, t)
+		}
+		if _, ok := t.(*AliasType); !ok {
+			allTypesWithoutAliases = append(allTypesWithoutAliases, t)
 		}
 	}
 
@@ -78,7 +81,7 @@ func GenerateAnyTypes(gen *CppGenerator, primitiveTypes []GeneratableType, allTy
 	
 	`)).Execute(gen.Body, map[string]interface{}{
 		"PrimitiveTypes": exceptionalTypes,
-		"allTypes":       allTypes,
+		"allTypes":       allTypesWithoutAliases,
 	})
 }
 

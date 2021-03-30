@@ -3,3 +3,4 @@ protoc-gen-cpprefl
 generator/
 `
 out/
+protos/

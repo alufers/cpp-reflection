@@ -1,6 +1,6 @@
 #include <iostream>
 #include <iomanip>
-#include "sranie.h"
+#include "protobuf.h"
 #include <optional>
 
 void indent(int n)
@@ -235,19 +235,19 @@ int main(int argc, char **argv)
     // auto theTypeOfBar = AnyRef::of(v.reflectType());
     // print(theTypeOfBar);
 
-    std::vector<AudioFile> baz;
-    // baz.foos.push_back(foo);
-    // baz.foos.push_back(foo);
-    auto bazRef = AnyRef::of(&baz);
-    auto theTypeOfBaz = AnyRef::of(bazRef.reflectType());
+    // std::vector<AudioFile> baz;
+    // // baz.foos.push_back(foo);
+    // // baz.foos.push_back(foo);
+    // auto bazRef = AnyRef::of(&baz);
+    // auto theTypeOfBaz = AnyRef::of(bazRef.reflectType());
 
-    writeJSON(std::cout, theTypeOfBaz);
+    // writeJSON(std::cout, theTypeOfBaz);
 
-    auto vecRef = AnyVectorRef(bazRef);
-    vecRef.reserve(20);
-    vecRef.emplace_back();
+    // auto vecRef = AnyVectorRef(bazRef);
+    // vecRef.reserve(20);
+    // vecRef.emplace_back();
 
-    std::cout << "baz.size() = " <<  baz.size() << "\n";
+    // std::cout << "baz.size() = " <<  baz.size() << "\n";
 
     // std::cout << "\n\n -------\n\n";
 

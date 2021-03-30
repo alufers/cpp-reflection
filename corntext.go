@@ -50,13 +50,14 @@ type Corntext struct {
 }
 
 func NewCorntext() *Corntext {
+	i64 := &PrimitiveType{identifierName: "Int64", cppType: "int64_t"}
 	return &Corntext{
 		Request:  new(plugin.CodeGeneratorRequest),
 		Response: new(plugin.CodeGeneratorResponse),
 		CG:       NewCppGenerator("protobuf.h"),
 		AllTypes: []GeneratableType{},
 		PrimitiveTypes: map[string]GeneratableType{
-			"int":           &PrimitiveType{identifierName: "Int", cppType: "int"},
+			"int": &PrimitiveType{identifierName: "Int", cppType: "int"},
 			// "unsigned int":  &PrimitiveType{identifierName: "UnsignedInt", cppType: "unsigned int"},
 			"char":          &PrimitiveType{identifierName: "Char", cppType: "char"},
 			"unsigned char": &PrimitiveType{identifierName: "UnsignedChar", cppType: "unsigned char"},
@@ -64,9 +65,9 @@ func NewCorntext() *Corntext {
 			"float":         &PrimitiveType{identifierName: "Float", cppType: "float"},
 			"bool":          &PrimitiveType{identifierName: "Bool", cppType: "bool"},
 			"std::string":   &PrimitiveType{identifierName: "String", cppType: "std::string"},
-			// "size_t":        &PrimitiveType{identifierName: "SizeT", cppType: "size_t"},
+			"size_t":        &AliasType{Of: i64, cppType: "size_t"},
 			"int32_t":       &PrimitiveType{identifierName: "Int32", cppType: "int32_t"},
-			"int64_t":       &PrimitiveType{identifierName: "Int64", cppType: "int64_t"},
+			"int64_t":       i64,
 			"uint32_t":      &PrimitiveType{identifierName: "Uint32", cppType: "uint32_t"},
 			"uint64_t":      &PrimitiveType{identifierName: "Uint64", cppType: "uint64_t"},
 			"uint8_t":       &PrimitiveType{identifierName: "Uint8", cppType: "uint8_t"},
@@ -131,6 +132,9 @@ func (c *Corntext) outputTypes() {
 	dataFile.OutputArrayVariable(c.ReflectType.CppType(), "reflectTypeInfo", len(c.AllTypes), func() {
 
 		for _, t := range c.AllTypes {
+			if _, ok := t.(*AliasType); ok {
+				continue
+			}
 			t.WriteReflection(dataFile)
 			fmt.Fprintf(dataFile.Body, ",\n")
 		}
@@ -157,6 +161,9 @@ func (c *Corntext) buildAllTypes() {
 	}
 	c.generateProtobufTypes()
 	for i, t := range c.AllTypes {
+		if _, ok := t.(*AliasType); ok {
+			continue
+		}
 		c.TypeIDEnum.(*EnumType).Values = append(c.TypeIDEnum.(*EnumType).Values, EnumValue{Name: t.IdentifierName(), Value: fmt.Sprintf("%v", i)})
 	}
 }
